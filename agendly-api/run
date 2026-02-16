@@ -61,46 +61,11 @@ function tests {
     # sempre rodar apenas Unit e Feature
     TEST_PATH="tests/Unit tests/Feature"
 
-    echo "Installing JS dependencies..."
-    docker compose exec php_test yarn install -y
-
-    echo "Skipping front-end build (testing environment)..."
-
     echo "Running migrations..."
     docker compose exec -T php_test php artisan migrate --force --env=testing
 
     echo "Running tests..."
     docker compose run --rm php_test ./vendor/bin/phpunit --colors=always ${TEST_PATH}
-}
-
-function uploads {
-    echo "Criando link simbólico storage e ajustando permissões..."
-
-    docker compose exec php sh -c "
-        cd /var/www/public && \
-        if [ -L storage ]; then rm storage; fi && \
-        ln -s ../storage/app/public storage && \
-        mkdir -p ../storage/app/public/covers && \
-        chown -R www-data:www-data ../storage bootstrap/cache && \
-        chmod -R 775 ../storage bootstrap/cache
-    "
-
-    echo "Link simbólico criado e permissões ajustadas."
-}
-
-function phpcs {
-    TEST_PATH="${@:-.}"
-    docker compose run --rm php ./vendor/bin/phpcs -d memory_limit=1G ${TEST_PATH}
-}
-
-function phpcbf {
-    TEST_PATH="${@:-.}"
-     docker compose run --rm php ./vendor/bin/phpcbf -d memory_limit=1G ${TEST_PATH}
-}
-
-function phpstan {
-    TEST_PATH="${@:-}"
-    docker compose run --rm php ./vendor/bin/phpstan analyse --memory-limit 1G ${TEST_PATH}
 }
 
 function git:clean:branchs {
@@ -119,5 +84,33 @@ function db:populate {
     docker compose exec php php artisan db:seed
 }
 
+function list {
+    echo ""
+    echo "Available commands:"
+    echo ""
+    echo "  ./run up               Start containers"
+    echo "  ./run down             Stop containers"
+    echo "  ./run ps               Container status"
+    echo ""
+    echo "  ./run composer <args>  Run composer"
+    echo "  ./run tests            Run PHPUnit"
+    echo ""
+    echo "  ./run db:console       DB shell"
+    echo "  ./run db:reset         Fresh migrate + seed"
+    echo "  ./run db:populate      Seed database"
+    echo ""
+    echo "  ./run nginx:check      Check nginx config"
+    echo "  ./run nginx:status     Nginx status"
+    echo "  ./run nginx:reload     Reload nginx"
+    echo ""
+    echo "  ./run permissions      Fix Laravel permissions"
+    echo ""
+}
+
 TIMEFORMAT=$'\nTask completed in %3lR'
-time ${@}
+
+if [ $# -eq 0 ]; then
+    list
+else
+    time "$@"
+fi

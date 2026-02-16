@@ -2,13 +2,31 @@
     "openapi": "3.0.0",
     "info": {
         "title": "Agendly API",
-        "description": "Documentação da API do Agendly",
+        "description": "REST API for Agendly platform — scheduling, students, services and appointments management.",
+        "termsOfService": "https://agendly.com.br/terms",
+        "contact": {
+            "name": "Agendly Support",
+            "url": "https://agendly.com.br",
+            "email": "support@agendly.com.br"
+        },
+        "license": {
+            "name": "Proprietary",
+            "url": "https://agendly.com.br/license"
+        },
         "version": "1.0.0"
     },
     "servers": [
         {
-            "url": "http://localhost:8000/api",
-            "description": "Servidor Local"
+            "url": "http://localhost/api",
+            "description": "Local development"
+        },
+        {
+            "url": "https://staging.api.agendly.com.br",
+            "description": "Staging environment"
+        },
+        {
+            "url": "https://api.agendly.com.br",
+            "description": "Production environment"
         }
     ],
     "paths": {
@@ -17,20 +35,133 @@
                 "tags": [
                     "Students"
                 ],
-                "summary": "Lista estudantes",
+                "summary": "List students",
+                "description": "Returns all students linked to the authenticated personal trainer.",
                 "operationId": "a76b73bf8e79114f2b2729f244665d86",
                 "responses": {
                     "200": {
-                        "description": "Lista retornada com sucesso"
+                        "description": "Students retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Student"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
-                }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Student": {
+                "title": "Student",
+                "description": "Represents a student/client linked to a personal trainer.",
+                "required": [
+                    "id",
+                    "personal_id",
+                    "name",
+                    "status",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Unique student identifier",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "personal_id": {
+                        "description": "Identifier of the personal trainer responsible for the student",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "description": "Full name of the student",
+                        "type": "string",
+                        "example": "Carlos Silva"
+                    },
+                    "email": {
+                        "description": "Student email address",
+                        "type": "string",
+                        "format": "email",
+                        "example": "carlos@example.com",
+                        "nullable": true
+                    },
+                    "phone": {
+                        "description": "Phone number including area code",
+                        "type": "string",
+                        "example": "11999999999",
+                        "nullable": true
+                    },
+                    "status": {
+                        "description": "Current status of the student",
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive"
+                        ],
+                        "example": "active"
+                    },
+                    "notes": {
+                        "description": "Medical notes or additional observations",
+                        "type": "string",
+                        "example": "Mild right knee injury",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-02-13T21:31:41.000000Z"
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-02-13T21:31:41.000000Z"
+                    },
+                    "deleted_at": {
+                        "description": "Soft deletion timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": null,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "description": "JWT Bearer token authentication. Example: 'Authorization: Bearer {token}'",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },
     "tags": [
         {
             "name": "Students",
-            "description": "Operações relacionadas a estudantes"
+            "description": "Operations related to students"
         }
     ]
 }
