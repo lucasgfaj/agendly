@@ -7,33 +7,52 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ThemeToggle from '@/components/ThemeToggle';
 import { toast, Toaster } from "sonner";
-
+import { register } from '@/services/auth.api';
 export default function Signup() {
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [password_confirmation, setPasswordConfirmation] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name || !email || !password) {
+
+        if (!name || !email || !password || !password_confirmation) {
             toast.error('Preencha todos os campos');
             return;
         }
+
         if (password.length < 6) {
             toast.error('A senha deve ter no mínimo 6 caracteres');
             return;
         }
-        setLoading(true);
-        setTimeout(() => {
-            localStorage.setItem('agendly-auth', 'true');
+
+        try {
+            setLoading(true);
+
+            await register({
+                name,
+                email,
+                password,
+                password_confirmation: password,
+            });
+
             toast.success('Conta criada com sucesso!');
             navigate('/dashboard');
+
+        } catch (error: any) {
+            toast.error(
+                error.response?.data?.message ||
+                'Erro ao criar conta. Tente novamente.'
+            );
+        } finally {
             setLoading(false);
-        }, 800);
+        }
     };
+
 
     return (
         <div className="min-h-screen flex bg-background">
@@ -121,6 +140,28 @@ export default function Signup() {
                                     placeholder="Mínimo 6 caracteres"
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
+                                    className="pl-10 pr-10"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="password_confirmation">Confirmar senha</Label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Input
+                                    id="password_confirmation"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Confirme sua senha"
+                                    value={password_confirmation}
+                                    onChange={e => setPasswordConfirmation(e.target.value)}
                                     className="pl-10 pr-10"
                                 />
                                 <button

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import ThemeToggle from '@/components/ThemeToggle';
 import { toast, Toaster } from "sonner";
+import { login } from '@/services/auth.api';
 
 export default function Login() {
     const navigate = useNavigate();
@@ -15,19 +16,33 @@ export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!email || !password) {
             toast.error('Preencha todos os campos');
             return;
         }
-        setLoading(true);
-        setTimeout(() => {
-            localStorage.setItem('agendly-auth', 'true');
+
+        try {
+            setLoading(true);
+
+            await login({
+                email,
+                password,
+            });
+
             toast.success('Login realizado com sucesso!');
             navigate('/dashboard');
+
+        } catch (error: any) {
+            toast.error(
+                error.response?.data?.message ||
+                'Erro ao realizar login. Verifique suas credenciais e tente novamente.'
+            );
+        } finally {
             setLoading(false);
-        }, 800);
+        }
+
     };
 
     return (

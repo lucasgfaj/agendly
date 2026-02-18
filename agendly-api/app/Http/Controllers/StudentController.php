@@ -43,7 +43,8 @@ class StudentController extends Controller
     public function index()
     {
         return response()->json([
-            'data' => Student::all()
+            'data' => Student::where('personal_id', auth()->id())->get()
+
         ]);
     }
 
